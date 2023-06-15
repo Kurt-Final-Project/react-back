@@ -5,6 +5,7 @@ module.exports = (req, res, next) => {
 		const errors = validationResult(req);
 		if (!errors.isEmpty()) {
 			const error = new Error(errors.errors[0].msg);
+			error.field = errors.errors[0].param;
 			error.statusCode = 422;
 			throw error;
 		}

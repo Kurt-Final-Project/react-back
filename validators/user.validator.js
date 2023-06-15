@@ -11,9 +11,14 @@ const emailField = body("email", "Email should only contain letters and a subadd
 	})
 	.withMessage("Provider not supported. Please use another email provider.");
 
-const passwordField = body("password", "Password must contain at least 8 characters.").trim().isLength({ min: 8 });
+const passwordSignupField = body("password", "Password must contain at least 8 alphanumeric characters.")
+	.isAlphanumeric()
+	.trim()
+	.isLength({ min: 8 });
 
-exports.emailPassword = [emailField, passwordField];
+const passwordLoginField = body("password", "Password is required.").trim().notEmpty();
+
+exports.emailPasswordLogin = [emailField, passwordLoginField];
 
 exports.userFields = [
 	emailField,
@@ -44,7 +49,7 @@ exports.userAt = [
 ];
 
 exports.updateUserPassword = [
-	passwordField,
+	passwordSignupField,
 
 	body("confirmPassword", "Password does not match.")
 		.trim()

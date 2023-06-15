@@ -4,7 +4,7 @@ const { userController } = require("../controllers");
 const { isAuthenticated, multer, validFields } = require("../middlewares");
 const userValidator = require("../validators/user.validator");
 
-router.route("/login").post(userValidator.emailPassword, validFields, userController.loginUser);
+router.route("/login").post(userValidator.emailPasswordLogin, validFields, userController.loginUser);
 
 router
 	.route("/signup")

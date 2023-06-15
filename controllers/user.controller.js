@@ -27,9 +27,9 @@ exports.loginUser = async (req, res, next) => {
 		const user = await User.findOne({ email });
 		errorChecker.isPasswordCorrect(user?.password, password, "No user found.", 404);
 
-		const token = tokenGenerator(user);
+		const { token, expirationDate } = tokenGenerator(user);
 
-		return res.status(200).json({ message: "Login success!", token });
+		return res.status(200).json({ message: "Login success!", token, expirationDate });
 	} catch (err) {
 		next(err);
 	}
@@ -51,9 +51,9 @@ exports.signupUser = async (req, res, next) => {
 			password: hashedPassword,
 		});
 
-		const token = tokenGenerator(user);
+		const { token, expirationDate } = tokenGenerator(user);
 
-		return res.status(201).json({ message: "User created successfully", token });
+		return res.status(201).json({ message: "User created successfully", token, expirationDate });
 	} catch (err) {
 		next(err);
 	}

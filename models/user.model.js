@@ -32,7 +32,7 @@ const userModel = new mongoose.Schema(
 		},
 		profile_picture_url: {
 			type: String,
-			required: true,
+			// required: true,
 		},
 		password_chances: {
 			type: Number,

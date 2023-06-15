@@ -5,9 +5,9 @@ const client = require("./startup/redis");
 require("./routers")(app);
 
 app.use(async (err, req, res, next) => {
-	let { statusCode, message } = err;
+	let { statusCode, message, field } = err;
 	statusCode = statusCode || 500;
-	return res.status(statusCode).json({ message });
+	return res.status(statusCode).json({ message, field });
 });
 
 app.use((req, res, next) => {
