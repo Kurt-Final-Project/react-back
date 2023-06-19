@@ -37,13 +37,17 @@ exports.getComments = async (req, res, next) => {
 };
 
 exports.addComment = async (req, res, next) => {
-	const { blog_id, commentText } = req.body;
+	const { blog_id, comment } = req.body;
 
 	try {
-		const filter = { user_id: req.mongoose_id, blog_id, comment: commentText };
-		const comment = await Comment.create(filter);
+		const query = { user_id: req.mongoose_id, blog_id, comment };
+		const newComment = await Comment.create(query);
+		await newComment.populate({
+			path: "user_id",
+			select: "profile_picture_url first_name last_name user_at -_id",
+		});
 
-		return res.status(201).json({ message: "Comment successfully added to post!", comment });
+		return res.status(201).json({ message: "Comment successfully added to post!", comment: newComment });
 	} catch (err) {
 		next(err);
 	}
@@ -90,13 +94,14 @@ exports.editComment = async (req, res, next) => {
 	}
 };
 
-exports.getLikes = async (req, res, next) => {
+exports.getLikesAndCommentsCount = async (req, res, next) => {
 	const { blog_id } = req.params;
 
 	try {
 		const likes = await Like.count({ blog_id });
+		const comments = await Comment.count({ blog_id });
 
-		return res.status(200).json({ message: "Likes retrieved.", likes });
+		return res.status(200).json({ message: "Like and comment count retrieved.", likes, comments });
 	} catch (err) {
 		next(err);
 	}

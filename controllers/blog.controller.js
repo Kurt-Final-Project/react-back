@@ -13,6 +13,11 @@ exports.createBlog = async function (req, res, next) {
 
 	try {
 		const blog = await Blog.create(query);
+		await blog.populate({
+			path: "user_id",
+			select: "profile_picture_url first_name last_name user_at",
+		});
+
 		await cache(blog._id, blog);
 
 		return res.status(201).json({ message: "Blog created.", blog });
