@@ -9,12 +9,18 @@ router
 	.get(isAuthenticated, blogController.getBlogs)
 	.post(isAuthenticated, blogValidator.createOrUpdateBlog, validFields, blogController.createBlog);
 
-router.route("/all").get(isAuthenticated, blogController.getUserPosts);
+router.route("/user/:user_id").get(isAuthenticated, blogController.getUserPosts);
 
 router
 	.route("/:blog_id")
 	.get(isAuthenticated, blogController.getSingleBlogDetails)
-	.put(isAuthenticated, multer.single("picture"), blogValidator.createOrUpdateBlog, validFields, blogController.updateBlog)
+	.put(
+		isAuthenticated,
+		multer.single("picture"),
+		blogValidator.createOrUpdateBlog,
+		validFields,
+		blogController.updateBlog
+	)
 	.delete(isAuthenticated, blogController.deleteBlog);
 
 module.exports = router;

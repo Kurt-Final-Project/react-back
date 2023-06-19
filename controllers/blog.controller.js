@@ -1,6 +1,7 @@
-const { Blog } = require("../models");
+const { Blog, User } = require("../models");
 const { errorChecker, cache } = require("../utils");
 const client = require("../startup/redis");
+const { isExisting } = require("../utils/errorChecker");
 
 exports.createBlog = async function (req, res, next) {
 	const { description } = req.body;
@@ -31,7 +32,11 @@ exports.getSingleBlogDetails = async (req, res, next) => {
 			return res.status(200).json({ message, blog: JSON.parse(cachedBlog) });
 		}
 
-		const blog = await Blog.findOne({ _id: blog_id });
+		const blog = await Blog.findOne({ _id: blog_id }).populate({
+			path: "user_id",
+			select: "profile_picture_url first_name last_name user_at",
+		});
+
 		errorChecker.isExisting(blog, "Blog cannot be found.", 404);
 
 		await cache(blog_id, blog);
@@ -68,7 +73,7 @@ exports.getBlogs = async (req, res, next) => {
 		}
 
 		const blogs = await Blog.find({ deleted_at: null })
-			.populate({ path: "user_id", select: "profile_picture_url first_name last_name" })
+			.populate({ path: "user_id", select: "profile_picture_url first_name last_name user_at" })
 			.sort({ updatedAt: -1 })
 			.limit(perPage)
 			.skip(skip);
@@ -128,8 +133,13 @@ exports.updateBlog = async (req, res, next) => {
 };
 
 exports.getUserPosts = async (req, res, next) => {
+	const { user_id } = req.params;
+
 	try {
-		const filter = { user_id: req.mongoose_id, deletedAt: { $ne: null } };
+		const user = await User.findOne({ user_at: user_id });
+		errorChecker.isExisting(user, "User cannot be found.", 404);
+
+		const filter = { user_id: user._id, deletedAt: null };
 		const blogs = await Blog.find(filter)
 			.populate({
 				path: "user_id",

@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 module.exports = (payload) => {
-	const minutesToExpire = 60 * 60 * 1; // 1h
+	const minutesToExpire = 60 * 60 * 24; // 24h
 	const expirationDate = Date.now() + 1000 * minutesToExpire;
 
 	return {

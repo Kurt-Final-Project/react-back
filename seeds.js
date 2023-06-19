@@ -23,7 +23,7 @@ const produceFakeBlogs = async () => {
 	const testUser = await User.create({
 		first_name: "kurt",
 		last_name: "testing",
-		user_at: "@" + faker.internet.userName("kurt", "testing").toLowerCase(),
+		user_at: "kurt69",
 		email: "test@stratpoint.com",
 		password: passwordHasher("123123123"),
 		profile_picture_url: path.join("public", "covers", "0.png").split("\\").join("/"),
@@ -37,10 +37,13 @@ const produceFakeBlogs = async () => {
 		const last_name = faker.name.lastName();
 		const img = Math.floor(Math.random() * 5) + ".png";
 
+		const name = first_name + last_name + faker.datatype.uuid().split("-")[0].slice(0, 4);
+		const userAt = name.split(" ").join("").toLowerCase();
+
 		const user = await User.create({
 			first_name,
 			last_name,
-			user_at: "@" + faker.internet.userName(first_name, last_name).toLowerCase(),
+			user_at: userAt,
 			email: faker.internet.email(first_name.toLowerCase(), last_name.toLowerCase(), "stratpoint.com"),
 			password: passwordHasher("123123123"),
 			profile_picture_url: path.join("public", "covers", img).split("\\").join("/"),
@@ -62,7 +65,11 @@ const produceFakeBlogs = async () => {
 	for (let i = 0; i < maxUsers * 3; i++) {
 		const rand = Math.floor(Math.random() * 5);
 		const anotherRand = Math.floor(Math.random() * 5);
-		await Comment.create({ user_id: users[rand], blog_id: blogs[anotherRand], comment: faker.commerce.productDescription() });
+		await Comment.create({
+			user_id: users[rand],
+			blog_id: blogs[anotherRand],
+			comment: faker.commerce.productDescription(),
+		});
 		await Like.create({ user_id: users[anotherRand], blog_id: blogs[rand] });
 	}
 

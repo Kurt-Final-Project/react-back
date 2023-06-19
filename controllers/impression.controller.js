@@ -21,7 +21,7 @@ exports.getComments = async (req, res, next) => {
 			});
 		}
 
-		const populate = { path: "user_id", select: "profile_picture_url first_name last_name -_id" };
+		const populate = { path: "user_id", select: "profile_picture_url first_name last_name user_at -_id" };
 		const comments = await Comment.find({ blog_id }).populate(populate);
 
 		await cache(commentKey, comments);
@@ -81,7 +81,6 @@ exports.editComment = async (req, res, next) => {
 				new: true,
 			}
 		);
-		console.log(comment);
 
 		errorChecker.isAuthorized(comment?.user_id, req.mongoose_id, "Not authorized to update comment.");
 

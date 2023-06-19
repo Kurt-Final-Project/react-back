@@ -8,16 +8,16 @@ const tokenGenerator = (user) => {
 		mongoose_id: user._id,
 		user_id: user.id,
 		email: user.email,
+		user_at: user.user_at,
 	});
 };
 
 const initialUserAt = (first_name, last_name) => {
-	const initialAt = "@";
 	const first = first_name.slice(0, 2).toLowerCase().split(" ").join("");
 	const last = last_name.slice(0, 5).toLowerCase().split(" ").join("");
 	const uuid = crypto.randomUUID().split("-")[0];
 
-	return initialAt + first + last + uuid;
+	return first + last + uuid;
 };
 
 exports.loginUser = async (req, res, next) => {
@@ -70,7 +70,7 @@ exports.getUser = async (req, res, next) => {
 			return res.status(200).json({ message, user: JSON.parse(userCached) });
 		}
 
-		const user = await User.findOne({ user_at: "@" + user_at }).select("-password -_id");
+		const user = await User.findOne({ user_at }).select("-password -_id");
 		errorChecker.isExisting(user, "No user found.", 404);
 
 		await cache(user_at, user);

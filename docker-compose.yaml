@@ -8,6 +8,10 @@ services:
       - 6379:6379
     networks:
       - redisdb
+    command: redis-server --requirepass password
+    environment:
+      - REDIS_USERNAME=default
+      - REDIS_PASSWORD=password
   insight:
     image: redislabs/redisinsight
     ports:
