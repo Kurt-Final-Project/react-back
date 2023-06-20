@@ -3,7 +3,16 @@ const app = express();
 const cors = require("cors");
 const helmet = require("helmet");
 require("dotenv").config();
+const rateLimit = require("express-rate-limit");
 
+const limiter = rateLimit({
+	windowMs: 1 * 60 * 1000, // 1 min
+	max: 150,
+	standardHeaders: true,
+	legacyHeaders: false,
+});
+
+// app.use(limiter);
 app.use(cors());
 app.use(
 	helmet({

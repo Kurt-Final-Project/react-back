@@ -18,7 +18,13 @@ router
 
 router
 	.route("/profile")
-	.put(isAuthenticated, userValidator.userFields, userValidator.userAt, validFields, userController.updateUserDetails)
+	.put(
+		isAuthenticated,
+		userValidator.updateUserFields,
+		userValidator.userAt,
+		validFields,
+		userController.updateUserDetails
+	)
 	.patch(isAuthenticated, multer.single("picture"), userController.updateUserPicture);
 
 router.route("/profile/:user_at").get(isAuthenticated, userController.getUser);

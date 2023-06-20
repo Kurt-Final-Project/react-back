@@ -18,34 +18,42 @@ const passwordSignupField = body("password", "Password must contain at least 8 a
 
 const passwordLoginField = body("password", "Password is required.").trim().notEmpty();
 
+const userGivenName = body(["first_name", "last_name"], "Name fields must only contain letters.")
+	.trim()
+	.isLength({ min: 3 })
+	.withMessage("Name fields must be at least 3 characters long.")
+	.customSanitizer((value) => {
+		const words = value.split(" ");
+
+		const camelCasedWords = words.map((word, index) => {
+			return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+		});
+
+		return camelCasedWords.join(" ");
+	})
+	.isAlpha("en-US", { ignore: " '" });
+
+const bioField = body("bio").trim().isLength({ min: 3 }).withMessage("Bio must be at least 3 characters long.");
+const birthdayField = body("birthday")
+	.notEmpty()
+	.withMessage("Birthday must not be empty.")
+	.isDate()
+	.withMessage("Invalid date format");
+
 exports.emailPasswordLogin = [emailField, passwordLoginField];
 
-exports.userFields = [
-	emailField,
+exports.userFields = [emailField, userGivenName];
 
-	body(["first_name", "last_name"], "Name fields must only contain letters.")
-		.trim()
-		.isLength({ min: 3 })
-		.withMessage("Name fields must be at least 3 characters long.")
-		.customSanitizer((value) => {
-			const words = value.split(" ");
-
-			const camelCasedWords = words.map((word, index) => {
-				return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-			});
-
-			return camelCasedWords.join(" ");
-		})
-		.isAlpha("en-US", { ignore: " '" }),
-];
+exports.updateUserFields = [userGivenName, bioField, birthdayField];
 
 exports.userAt = [
 	body("user_at", "Username should only contain letters and numbers.")
 		.trim()
-		.isLength({ min: 5 })
-		.withMessage("Username field must be at least 5 characters long.")
+		.isLength({ min: 4 })
+		.withMessage("Username field must be at least 4 characters long.")
 		.toLowerCase()
-		.isAlphanumeric("en-US"),
+		.isAlphanumeric("en-US")
+		.withMessage("Username field must only contain alphanumeric characters."),
 ];
 
 exports.updateUserPassword = [

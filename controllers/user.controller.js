@@ -61,11 +61,13 @@ exports.signupUser = async (req, res, next) => {
 
 exports.getUser = async (req, res, next) => {
 	const { user_at } = req.params;
+	const { own } = req.query;
 	const message = "User retrieved successfully.";
 
 	try {
-		const userCached = await client.get(user_at);
+		if (own) errorChecker.isAuthorized(req.user_at, user_at, "Credentials mismatched.");
 
+		const userCached = await client.get(user_at);
 		if (userCached) {
 			return res.status(200).json({ message, user: JSON.parse(userCached) });
 		}
@@ -82,29 +84,26 @@ exports.getUser = async (req, res, next) => {
 };
 
 exports.updateUserDetails = async (req, res, next) => {
-	let { email, first_name, last_name, user_at, birthday } = req.body;
+	let { first_name, last_name, user_at, bio, birthday } = req.body;
 
 	try {
 		const isExisting = await User.findOne({
-			$or: [{ email }, { user_at: "@" + user_at }],
+			user_at,
 			_id: {
 				$ne: req.mongoose_id,
 			},
 		});
 
-		const errorMessage =
-			isExisting?.email === email ? "User with that email already exist." : "User with that username already exist.";
-
-		errorChecker.isExisting(!isExisting, errorMessage, 403);
+		errorChecker.isExisting(!isExisting, "User with that username already exist.", 403);
 
 		const user = await User.findOneAndUpdate(
 			{ _id: req.mongoose_id },
 			{
 				$set: {
-					email,
 					first_name,
 					last_name,
-					user_at: "@" + user_at,
+					bio,
+					user_at,
 					birthday,
 				},
 			},
@@ -114,7 +113,7 @@ exports.updateUserDetails = async (req, res, next) => {
 		).select("-password -_id");
 
 		errorChecker.isExisting(user, "No user found to update.", 404);
-		cache(user_at, user);
+		await cache(user_at, user);
 
 		return res.status(200).json({
 			message: "User details updated.",

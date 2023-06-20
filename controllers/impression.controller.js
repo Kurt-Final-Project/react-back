@@ -22,7 +22,7 @@ exports.getComments = async (req, res, next) => {
 		}
 
 		const populate = { path: "user_id", select: "profile_picture_url first_name last_name user_at -_id" };
-		const comments = await Comment.find({ blog_id }).populate(populate);
+		const comments = await Comment.find({ blog_id }).limit(10).populate(populate);
 
 		await cache(commentKey, comments);
 		await cache(commentCounterKey, commentCount);
@@ -98,10 +98,13 @@ exports.getLikesAndCommentsCount = async (req, res, next) => {
 	const { blog_id } = req.params;
 
 	try {
-		const likes = await Like.count({ blog_id });
+		const like = await Like.find({ blog_id });
+		const likesCount = like.length;
 		const comments = await Comment.count({ blog_id });
 
-		return res.status(200).json({ message: "Like and comment count retrieved.", likes, comments });
+		const isLiked = like.some((l) => l.user_id.toString() === req.mongoose_id.toString());
+
+		return res.status(200).json({ message: "Like and comment count retrieved.", likes: likesCount, comments, isLiked });
 	} catch (err) {
 		next(err);
 	}
@@ -110,6 +113,7 @@ exports.getLikesAndCommentsCount = async (req, res, next) => {
 exports.addLike = async (req, res, next) => {
 	const { blog_id, isLiking } = req.body;
 
+	console.log(isLiking);
 	try {
 		const filter = { blog_id, user_id: req.mongoose_id };
 
@@ -129,6 +133,7 @@ exports.addLike = async (req, res, next) => {
 
 		return res.status(201).json({ message: "Likes updated." });
 	} catch (err) {
+		console.log(err);
 		next(err);
 	}
 };
