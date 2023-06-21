@@ -6,6 +6,8 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"start": "node server",
+		"start:dev:redis": "docker compose up -d",
+		"stop:dev:redis": "docker compose down",
 		"start:dev": "nodemon server"
 	},
 	"author": "",

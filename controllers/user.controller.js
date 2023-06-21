@@ -6,9 +6,8 @@ const client = require("../startup/redis");
 const tokenGenerator = (user) => {
 	return jwtSign({
 		mongoose_id: user._id,
-		user_id: user.id,
+		user_id: user._id,
 		email: user.email,
-		user_at: user.user_at,
 	});
 };
 
@@ -60,22 +59,22 @@ exports.signupUser = async (req, res, next) => {
 };
 
 exports.getUser = async (req, res, next) => {
-	const { user_at } = req.params;
+	const { user_id } = req.params;
 	const { own } = req.query;
 	const message = "User retrieved successfully.";
 
 	try {
-		if (own) errorChecker.isAuthorized(req.user_at, user_at, "Credentials mismatched.");
+		if (own) errorChecker.isAuthorized(req.user_id, user_id, "Credentials mismatched.");
 
-		const userCached = await client.get(user_at);
+		const userCached = await client.get(user_id);
 		if (userCached) {
 			return res.status(200).json({ message, user: JSON.parse(userCached) });
 		}
 
-		const user = await User.findOne({ user_at }).select("-password -_id");
+		const user = await User.findOne({ _id: user_id }).select("-password -_id");
 		errorChecker.isExisting(user, "No user found.", 404);
 
-		await cache(user_at, user);
+		await cache(user_id, user);
 
 		return res.status(200).json({ message, user });
 	} catch (err) {

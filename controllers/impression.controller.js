@@ -21,7 +21,7 @@ exports.getComments = async (req, res, next) => {
 			});
 		}
 
-		const populate = { path: "user_id", select: "profile_picture_url first_name last_name user_at -_id" };
+		const populate = { path: "user_id", select: "profile_picture_url first_name last_name user_at _id" };
 		const comments = await Comment.find({ blog_id }).limit(10).populate(populate);
 
 		await cache(commentKey, comments);
@@ -44,7 +44,7 @@ exports.addComment = async (req, res, next) => {
 		const newComment = await Comment.create(query);
 		await newComment.populate({
 			path: "user_id",
-			select: "profile_picture_url first_name last_name user_at -_id",
+			select: "profile_picture_url first_name last_name user_at _id",
 		});
 
 		return res.status(201).json({ message: "Comment successfully added to post!", comment: newComment });
@@ -59,9 +59,11 @@ exports.deleteComment = async (req, res, next) => {
 
 	try {
 		const filter = { _id: comment_id, user_id: req.mongoose_id, blog_id };
-		const comment = await Comment.findOneAndDelete(filter);
+		const commentToDelete = await Comment.findOne(filter);
 
-		errorChecker.isAuthorized(comment?.user_id, req.mongoose_id, "Not authorized to delete comment.");
+		errorChecker.isAuthorized(commentToDelete?.user_id, req.mongoose_id, "Not authorized to delete comment.");
+
+		await Comment.deleteOne(filter);
 
 		return res.status(201).json({ message: "Comment successfully deleted." });
 	} catch (err) {

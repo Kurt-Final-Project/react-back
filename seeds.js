@@ -29,6 +29,15 @@ const produceFakeBlogs = async () => {
 		profile_picture_url: path.join("public", "covers", "0.png").split("\\").join("/"),
 	});
 
+	const testUser2 = await User.create({
+		first_name: "kurt",
+		last_name: "testing",
+		user_at: "kurt68",
+		email: "test1@stratpoint.com",
+		password: passwordHasher("123123123"),
+		profile_picture_url: path.join("public", "covers", "0.png").split("\\").join("/"),
+	});
+
 	let users = [];
 	let blogs = [];
 
@@ -54,7 +63,7 @@ const produceFakeBlogs = async () => {
 		for (let i = 0; i < blogsPerUser; i++) {
 			const img = Math.floor(Math.random() * 5) + ".png";
 			const blog = await Blog.create({
-				description: faker.commerce.productDescription(),
+				description: i + faker.commerce.productName(),
 				user_id: user._id,
 			});
 

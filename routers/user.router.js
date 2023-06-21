@@ -27,10 +27,10 @@ router
 	)
 	.patch(isAuthenticated, multer.single("picture"), userController.updateUserPicture);
 
-router.route("/profile/:user_at").get(isAuthenticated, userController.getUser);
+router.route("/profile/:user_id").get(isAuthenticated, userController.getUser);
 
 router
 	.route("/password/change")
-	.patch(isAuthenticated, userValidator.updateUserPassword, validFields, userController.changeUserPassword);
+	.put(isAuthenticated, userValidator.updateUserPassword, validFields, userController.changeUserPassword);
 
 module.exports = router;

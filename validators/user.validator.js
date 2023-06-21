@@ -11,8 +11,8 @@ const emailField = body("email", "Email should only contain letters and a subadd
 	})
 	.withMessage("Provider not supported. Please use another email provider.");
 
-const passwordSignupField = body("password", "Password must contain at least 8 alphanumeric characters.")
-	.isAlphanumeric()
+const passwordSignupField = body("password", "Password must contain at least 8 alphanumeric and !@#.+- characters.")
+	.isAlphanumeric("en-US", { ignore: "!@#.+-" })
 	.trim()
 	.isLength({ min: 8 });
 

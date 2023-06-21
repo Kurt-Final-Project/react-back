@@ -1,7 +1,7 @@
-const { Blog, User } = require("../models");
+const { Blog, User, Comment, Like } = require("../models");
 const { errorChecker, cache } = require("../utils");
 const client = require("../startup/redis");
-const { isExisting } = require("../utils/errorChecker");
+const mongoose = require("mongoose");
 
 exports.createBlog = async function (req, res, next) {
 	const { description } = req.body;
@@ -60,7 +60,7 @@ exports.getBlogs = async (req, res, next) => {
 	const message = "Blogs retrieved.";
 
 	try {
-		const totalPromise = Blog.count();
+		const totalPromise = Blog.count({});
 		const totalCachePromise = client.get("total");
 		const cacheBlogsPromise = client.get(blogKey);
 
@@ -70,18 +70,21 @@ exports.getBlogs = async (req, res, next) => {
 			cacheBlogsPromise,
 		]);
 
+		const hasMore = totalDocuments > skip + perPage;
+
 		if (+totalCached === totalDocuments && cachedBlogs) {
 			return res.status(200).json({
 				message,
 				blogs: JSON.parse(cachedBlogs),
+				hasMore,
 			});
 		}
 
-		const blogs = await Blog.find({ deleted_at: null })
-			.populate({ path: "user_id", select: "profile_picture_url first_name last_name user_at" })
-			.sort({ updatedAt: -1 })
+		const blogs = await Blog.find({})
 			.limit(perPage)
-			.skip(skip);
+			.skip(skip)
+			.sort({ updatedAt: -1 })
+			.populate({ path: "user_id", select: "profile_picture_url first_name last_name user_at" });
 
 		await cache(blogKey, blogs);
 		await cache("total", totalDocuments);
@@ -89,6 +92,7 @@ exports.getBlogs = async (req, res, next) => {
 		return res.status(200).json({
 			message,
 			blogs,
+			hasMore,
 		});
 	} catch (err) {
 		next(err);
@@ -98,21 +102,27 @@ exports.getBlogs = async (req, res, next) => {
 exports.deleteBlog = async (req, res, next) => {
 	const { blog_id } = req.params;
 
+	const session = await mongoose.startSession();
+	session.startTransaction();
 	try {
-		const filter = { _id: blog_id, user_id: req.mongoose_id, deleted_at: null };
-		const blog = await Blog.findOneAndUpdate(filter, {
-			$set: {
-				description: "POST DELETED",
-				deleted_at: new Date(),
-			},
-		});
+		const filter = { _id: blog_id, user_id: req.mongoose_id };
+		const blogToDelete = await Blog.findOne(filter);
 
-		errorChecker.isExisting(blog, "Blog cannot be found.", 404);
-		errorChecker.isAuthorized(blog?.user_id, req.mongoose_id, "Not authorized to delete.");
+		errorChecker.isExisting(blogToDelete, "Blog cannot be found.", 404);
+		errorChecker.isAuthorized(blogToDelete?.user_id, req.mongoose_id, "Not authorized to delete.");
+
+		await Blog.deleteOne(filter);
+		await Comment.deleteMany({ blog_id });
+		await Like.deleteMany({ blog_id });
+
+		await session.commitTransaction();
 
 		return res.status(200).json({ message: "Blog deleted!", blog_id });
 	} catch (err) {
+		await session.abortTransaction();
 		next(err);
+	} finally {
+		session.endSession();
 	}
 };
 
@@ -139,22 +149,48 @@ exports.updateBlog = async (req, res, next) => {
 
 exports.getUserPosts = async (req, res, next) => {
 	const { user_id } = req.params;
+	const page = +req.query.page || 1;
+	const perPage = +req.query.perPage || 5;
+	const skip = (page - 1) * perPage;
+	const blogKey = `${user_id}-${perPage}-${skip}`;
+	const message = "User blogs retrieved.";
 
 	try {
-		const user = await User.findOne({ user_at: user_id });
-		errorChecker.isExisting(user, "User cannot be found.", 404);
+		const filter = { user_id };
 
-		const filter = { user_id: user._id, deletedAt: null };
+		const totalPromise = Blog.count(filter);
+		const totalCachePromise = client.get("total");
+		const cacheBlogsPromise = client.get(blogKey);
+
+		const [totalDocuments, totalCached, cachedBlogs] = await Promise.all([
+			totalPromise,
+			totalCachePromise,
+			cacheBlogsPromise,
+		]);
+
+		const hasMore = totalDocuments > skip + perPage;
+
+		if (+totalCached === totalDocuments && cachedBlogs) {
+			return res.status(200).json({
+				message,
+				blogs: JSON.parse(cachedBlogs),
+				hasMore,
+			});
+		}
+
 		const blogs = await Blog.find(filter)
-			.populate({
-				path: "user_id",
-				select: "-password",
-			})
-			.sort({ updatedAt: -1 });
+			.limit(perPage)
+			.skip(skip)
+			.sort({ updatedAt: -1 })
+			.populate({ path: "user_id", select: "profile_picture_url first_name last_name user_at" });
+
+		await cache(blogKey, blogs);
+		await cache("total", totalDocuments);
 
 		return res.status(200).json({
 			message: "User blogs retrieved.",
 			blogs,
+			hasMore,
 		});
 	} catch (err) {
 		next(err);

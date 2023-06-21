@@ -16,8 +16,7 @@ module.exports = async (req, res, next) => {
 			throw error;
 		}
 		req.mongoose_id = decodedToken.mongoose_id;
-		req.user_at = decodedToken.user_at;
-		req.user_id = decodedToken.id;
+		req.user_id = decodedToken.user_id;
 		next();
 	} catch (err) {
 		next(err);
