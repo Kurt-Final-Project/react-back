@@ -4,7 +4,6 @@ const emailField = body("email", "Email should only contain letters and a subadd
 	.trim()
 	.normalizeEmail()
 	.isEmail()
-	.isAlphanumeric("en-US", { ignore: "@._" })
 	.custom((value, { req }) => {
 		if (value.split("@")[1] === "stratpoint.com") return true;
 		return false;
@@ -20,8 +19,8 @@ const passwordLoginField = body("password", "Password is required.").trim().notE
 
 const userGivenName = body(["first_name", "last_name"], "Name fields must only contain letters.")
 	.trim()
-	.isLength({ min: 3 })
-	.withMessage("Name fields must be at least 3 characters long.")
+	.isLength({ min: 2 })
+	.withMessage("Name fields must not be empty.")
 	.customSanitizer((value) => {
 		const words = value.split(" ");
 

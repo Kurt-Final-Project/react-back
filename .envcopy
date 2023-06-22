@@ -6,8 +6,5 @@ DB_PASSWORD=bW9uZ29kYi1wYXNzd29yZHMK
 # DB_COLL=test_blog
 SALT=mahabangsalt
 JWT_SECRET=mahabangsecret
-REDIS_HOST=redis-11542.c302.asia-northeast1-1.gce.cloud.redislabs.com
-REDIS_PORT=11542
-REDIS_USERNAME=default
-REDIS_PASS=cmVkaXMtcGFzc3dvcmQK
+
 
