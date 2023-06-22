@@ -8,6 +8,7 @@ const tokenGenerator = (user) => {
 		mongoose_id: user._id,
 		user_id: user._id,
 		email: user.email,
+		profile_picture_url: user.profile_picture_url,
 	});
 };
 
@@ -48,6 +49,7 @@ exports.signupUser = async (req, res, next) => {
 			user_at: initialUserAt(first_name, last_name),
 			email,
 			password: hashedPassword,
+			profile_picture_url: "public/covers/sample_profile.jpg",
 		});
 
 		const { token, expirationDate } = tokenGenerator(user);
@@ -136,6 +138,7 @@ exports.updateUserPicture = async (req, res, next) => {
 		);
 		return res.status(201).json({
 			message: "User profile picture updated.",
+			newPicture: filePath,
 		});
 	} catch (err) {
 		next(err);
