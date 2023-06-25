@@ -1,4 +1,4 @@
-const { body } = require("express-validator");
+const { body, param } = require("express-validator");
 
 const emailField = body("email", "Email should only contain letters and a subaddress.")
 	.trim()
@@ -65,3 +65,5 @@ exports.updateUserPassword = [
 			return true;
 		}),
 ];
+
+exports.isUserMongoID = [param("user_id").isMongoId().withMessage("No user found.")];

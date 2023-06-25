@@ -115,7 +115,6 @@ exports.getLikesAndCommentsCount = async (req, res, next) => {
 exports.addLike = async (req, res, next) => {
 	const { blog_id, isLiking } = req.body;
 
-	console.log(isLiking);
 	try {
 		const filter = { blog_id, user_id: req.mongoose_id };
 

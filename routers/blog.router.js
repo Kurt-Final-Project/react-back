@@ -13,7 +13,7 @@ router.route("/user/:user_id").get(isAuthenticated, blogController.getUserPosts)
 
 router
 	.route("/:blog_id")
-	.get(isAuthenticated, blogController.getSingleBlogDetails)
+	.get(isAuthenticated, blogValidator.isBlogMongoID, validFields, blogController.getSingleBlogDetails)
 	.put(
 		isAuthenticated,
 		multer.single("picture"),

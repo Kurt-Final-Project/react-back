@@ -27,7 +27,9 @@ router
 	)
 	.patch(isAuthenticated, multer.single("picture"), userController.updateUserPicture);
 
-router.route("/profile/:user_id").get(isAuthenticated, userController.getUser);
+router
+	.route("/profile/:user_id")
+	.get(isAuthenticated, userValidator.isUserMongoID, validFields, userController.getUser);
 
 router
 	.route("/password/change")
