@@ -24,7 +24,7 @@ const userGivenName = body(["first_name", "last_name"], "Name fields must only c
 	.customSanitizer((value) => {
 		const words = value.split(" ");
 
-		const camelCasedWords = words.map((word, index) => {
+		const camelCasedWords = words.map((word) => {
 			return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
 		});
 
@@ -32,12 +32,8 @@ const userGivenName = body(["first_name", "last_name"], "Name fields must only c
 	})
 	.isAlpha("en-US", { ignore: " '" });
 
-const bioField = body("bio").trim().isLength({ min: 3 }).withMessage("Bio must be at least 3 characters long.");
-const birthdayField = body("birthday")
-	.notEmpty()
-	.withMessage("Birthday must not be empty.")
-	.isDate()
-	.withMessage("Invalid date format");
+const bioField = body("bio").trim().optional();
+const birthdayField = body("birthday").optional().isDate().withMessage("Invalid date format.");
 
 exports.emailPasswordLogin = [emailField, passwordLoginField];
 
