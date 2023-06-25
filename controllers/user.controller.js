@@ -111,10 +111,10 @@ exports.updateUserDetails = async (req, res, next) => {
 			{
 				new: true,
 			}
-		).select("-password -_id");
+		).select("-password");
 
 		errorChecker.isExisting(user, "No user found to update.", 404);
-		await cache(user_at, user);
+		await cache(user._id, user);
 
 		return res.status(200).json({
 			message: "User details updated.",
@@ -168,7 +168,6 @@ exports.changeUserPassword = async (req, res, next) => {
 
 		return res.status(200).json({
 			message: "User password changed.",
-			user_id: req.mongoose_id,
 		});
 	} catch (err) {
 		next(err);
