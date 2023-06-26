@@ -73,7 +73,7 @@ exports.getUser = async (req, res, next) => {
 			return res.status(200).json({ message, user: JSON.parse(userCached) });
 		}
 
-		const user = await User.findOne({ _id: user_id }).select("-password -_id");
+		const user = await User.findOne({ _id: user_id }).select("-password");
 		errorChecker.isExisting(user, "No user found.", 404);
 
 		await cache(user_id, user);
