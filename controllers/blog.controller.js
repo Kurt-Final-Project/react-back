@@ -119,7 +119,7 @@ exports.deleteBlog = async (req, res, next) => {
 		await session.commitTransaction();
 
 		const totalCachePromise = client.get("total");
-		await client.set("total", +totalCachePromise - 1);
+		await cache("total", +totalCachePromise - 1);
 
 		return res.status(200).json({ message: "Blog deleted!", blog_id });
 	} catch (err) {

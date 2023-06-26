@@ -67,7 +67,7 @@ exports.deleteComment = async (req, res, next) => {
 		errorChecker.isAuthorized(commentToDelete?.user_id, req.mongoose_id, "Not authorized to delete comment.");
 
 		await Comment.deleteOne(filter);
-		await client.set(commentCounterKey, +cachedCommentCounter - 1);
+		await cache(commentCounterKey, +cachedCommentCounter - 1);
 
 		return res.status(201).json({ message: "Comment successfully deleted." });
 	} catch (err) {

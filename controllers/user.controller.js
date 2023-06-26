@@ -130,12 +130,15 @@ exports.updateUserPicture = async (req, res, next) => {
 		errorChecker.hasFile(req.file);
 		const filePath = req.file.path.split("\\").join("/");
 
-		await User.updateOne(
+		const user = await User.findOneAndUpdate(
 			{ _id: req.mongoose_id },
 			{
 				$set: { profile_picture_url: filePath },
 			}
-		);
+		).select("-password");
+
+		await cache(user._id, user);
+
 		return res.status(201).json({
 			message: "User profile picture updated.",
 			newPicture: filePath,
