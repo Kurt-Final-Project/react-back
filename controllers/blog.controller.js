@@ -118,6 +118,9 @@ exports.deleteBlog = async (req, res, next) => {
 		await client.del(blog_id);
 		await session.commitTransaction();
 
+		const totalCachePromise = client.get("total");
+		await client.set("total", +totalCachePromise - 1);
+
 		return res.status(200).json({ message: "Blog deleted!", blog_id });
 	} catch (err) {
 		await session.abortTransaction();
@@ -154,13 +157,14 @@ exports.getUserPosts = async (req, res, next) => {
 	const perPage = +req.query.perPage || 5;
 	const skip = (page - 1) * perPage;
 	const blogKey = `${user_id}-${perPage}-${skip}`;
+	const totalKey = `total-${user_id}`;
 	const message = "User blogs retrieved.";
 
 	try {
 		const filter = { user_id };
 
 		const totalPromise = Blog.count(filter);
-		const totalCachePromise = client.get("total");
+		const totalCachePromise = client.get(totalKey);
 		const cacheBlogsPromise = client.get(blogKey);
 
 		const [totalDocuments, totalCached, cachedBlogs] = await Promise.all([
@@ -186,7 +190,7 @@ exports.getUserPosts = async (req, res, next) => {
 			.populate({ path: "user_id", select: "profile_picture_url first_name last_name user_at" });
 
 		await cache(blogKey, blogs);
-		await cache("total", totalDocuments);
+		await cache(totalKey, totalDocuments);
 
 		return res.status(200).json({
 			message: "User blogs retrieved.",

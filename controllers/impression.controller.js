@@ -42,6 +42,7 @@ exports.addComment = async (req, res, next) => {
 	try {
 		const query = { user_id: req.mongoose_id, blog_id, comment };
 		const newComment = await Comment.create(query);
+
 		await newComment.populate({
 			path: "user_id",
 			select: "profile_picture_url first_name last_name user_at _id",
@@ -56,6 +57,8 @@ exports.addComment = async (req, res, next) => {
 exports.deleteComment = async (req, res, next) => {
 	const { blog_id } = req.params;
 	const { comment_id } = req.body;
+	const commentCounterKey = `comment-${blog_id}-count`;
+	const cachedCommentCounter = await client.get(commentCounterKey);
 
 	try {
 		const filter = { _id: comment_id, user_id: req.mongoose_id, blog_id };
@@ -64,6 +67,7 @@ exports.deleteComment = async (req, res, next) => {
 		errorChecker.isAuthorized(commentToDelete?.user_id, req.mongoose_id, "Not authorized to delete comment.");
 
 		await Comment.deleteOne(filter);
+		await client.set(commentCounterKey, +cachedCommentCounter - 1);
 
 		return res.status(201).json({ message: "Comment successfully deleted." });
 	} catch (err) {
