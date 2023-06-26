@@ -9,7 +9,7 @@ require("dotenv").config();
 const produceFakeBlogs = async () => {
 	const online = `mongodb+srv://kurt:${process.env.DB_PASSWORD}@cluster0.7gdpzrx.mongodb.net/${process.env.DB_COLL}`;
 	const local = process.env.MONGODB_URI + process.env.DB_COLL;
-	await mongoose.connect(local, {
+	await mongoose.connect(online, {
 		useNewUrlParser: true,
 		useUnifiedTopology: true,
 	});

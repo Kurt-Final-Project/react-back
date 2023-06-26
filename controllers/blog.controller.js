@@ -115,6 +115,7 @@ exports.deleteBlog = async (req, res, next) => {
 		await Comment.deleteMany({ blog_id });
 		await Like.deleteMany({ blog_id });
 
+		await client.del(blog_id);
 		await session.commitTransaction();
 
 		return res.status(200).json({ message: "Blog deleted!", blog_id });
