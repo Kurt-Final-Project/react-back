@@ -121,6 +121,10 @@ exports.deleteBlog = async (req, res, next) => {
 		const totalCachePromise = client.get("total");
 		await cache("total", +totalCachePromise - 1);
 
+		if (blogToDelete?.user_id === req.mongoose_id) {
+			await cache(`total-${req.mongoose_id}`, +totalCachePromise - 1);
+		}
+
 		return res.status(200).json({ message: "Blog deleted!", blog_id });
 	} catch (err) {
 		await session.abortTransaction();
